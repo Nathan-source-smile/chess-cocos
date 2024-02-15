@@ -6,7 +6,6 @@
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
 import { ClientCommService } from "./ClientCommService";
-import Winner from "./Winner";
 var lang = require("./lang.js");
 
 export default cc.Class({

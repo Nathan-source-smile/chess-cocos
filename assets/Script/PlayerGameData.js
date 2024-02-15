@@ -1,4 +1,3 @@
-import Accept from "./Accept";
 import GlobalData from "./Common/GlobalData";
 var global = require("global");
 
@@ -48,11 +47,7 @@ export default cc.Class({
     },
 
     onLoad() {
-        this.setButtons(false);
         this.countDownNode.active = false;
-        this.winds.forEach((wind) => {
-            wind.active = false;
-        });
     },
 
     startCountDown(seconds) {
@@ -106,38 +101,17 @@ export default cc.Class({
         this.roundScore.string = score + "/4";
     },
 
-    setGameScore(score) {
-        this.gameScore.string = "0" + score;
-    },
-
     activate() {
         this.usernameLabel.node.color = (new cc.Color()).fromHEX("FFFFFF");
         this.roundScore.node.color = (new cc.Color()).fromHEX("FFFFFF");
-        let temps = this.winds[this._seatWind].children;
-        temps.forEach((temp) => {
-            if (temp.name.endsWith('p')) {
-                temp.active = true;
-            } else {
-                temp.active = false;
-            }
-        });
-        // this.roundScore.node.color = (new cc.Color()).fromHEX("EADCCA");
+        this.roundScore.node.color = (new cc.Color()).fromHEX("EADCCA");
         this.loadBackgrounds(true);
     },
 
     deactivate() {
         this.usernameLabel.node.color = (new cc.Color()).fromHEX("582C14");
         this.roundScore.node.color = (new cc.Color()).fromHEX("582C14");
-        let temps = this.winds[this._seatWind].children;
-        temps.forEach((temp) => {
-            if (temp.name.endsWith('p')) {
-                temp.active = false;
-            } else {
-                temp.active = true;
-            }
-        });
         this.loadBackgrounds(false);
-        this.setButtons(false);
     },
 
     hideCountDown() {

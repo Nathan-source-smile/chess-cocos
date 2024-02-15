@@ -225,7 +225,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 96.05,
+      "width": 81.9,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -282,7 +282,9 @@
     "_fontSize": 36,
     "_lineHeight": 40,
     "_enableWrapText": true,
-    "_N$file": null,
+    "_N$file": {
+      "__uuid__": "ec3dd456-bcfc-435a-8fc4-34b3134901d3"
+    },
     "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_batchAsBitmap": false,
@@ -333,7 +335,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 261.42,
+      "width": 213.79,
       "height": 31.5
     },
     "_anchorPoint": {
@@ -390,7 +392,9 @@
     "_fontSize": 24,
     "_lineHeight": 25,
     "_enableWrapText": true,
-    "_N$file": null,
+    "_N$file": {
+      "__uuid__": "ec3dd456-bcfc-435a-8fc4-34b3134901d3"
+    },
     "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_batchAsBitmap": false,
@@ -441,7 +445,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 251.21,
+      "width": 232.44,
       "height": 31.5
     },
     "_anchorPoint": {
@@ -498,7 +502,9 @@
     "_fontSize": 24,
     "_lineHeight": 25,
     "_enableWrapText": true,
-    "_N$file": null,
+    "_N$file": {
+      "__uuid__": "ec3dd456-bcfc-435a-8fc4-34b3134901d3"
+    },
     "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_batchAsBitmap": false,
@@ -593,7 +599,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Background",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 14
     },
@@ -664,7 +670,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Label",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 15
     },
@@ -745,7 +751,9 @@
     "_fontSize": 29,
     "_lineHeight": 30,
     "_enableWrapText": false,
-    "_N$file": null,
+    "_N$file": {
+      "__uuid__": "ec3dd456-bcfc-435a-8fc4-34b3134901d3"
+    },
     "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_batchAsBitmap": false,
@@ -933,7 +941,7 @@
       "__id__": 1
     },
     "component": "",
-    "_componentId": "56e72sWgHhGNo6t4knIk3VK",
+    "_componentId": "c1186vSpcdH7YORA6abUTmD",
     "handler": "onClick",
     "customEventData": ""
   },

@@ -1,18 +1,11 @@
 import { loadImgAtlas } from "./AssetLoader";
 import { FakeServer } from "./Server/FakeServer";
-import { ClientCommService } from "./ClientCommService";
 import TopBar from "./TopBar";
-import GlobalVariables from "./GlobalVariables";
-import { TIME_LIMIT, TOTAL_TILES } from "./Common/Constants";
-import GlobalData from "./Common/GlobalData";
+import { ROUNDS, TIME_LIMIT, TOTAL_TILES } from "./Common/Constants";
 import Player from "./Player";
 import Board from "./Board";
-import EndRound from "./EndRound";
-import EndGame from "./EndGame";
 import WinNotification from "./WinNotification";
 import LoseNotification from "./LoseNotification";
-import StartRound from "./StartRound";
-import StartSmallGame from "./StartSmallGame";
 
 var Audio = require("./Audio.js");
 var lang = require("./lang.js");
@@ -35,6 +28,10 @@ cc.Class({
 
         _currentPlayer: -1,
         _players: [],
+        _selectPosition: -1,
+        _targetPosition: -1,
+        _availablePositions: [],
+        _round: ROUNDS.START_GAME,
 
         isMobile: false,
         coinsChangePerSecond: 0,
@@ -72,17 +69,28 @@ cc.Class({
             });
     },
 
-    start1(winds) {
+    start1() {
+        this.notification.active = false;
+        this._round = ROUNDS.START_GAME;
         this._players.forEach((player, index) => {
         });
         // Listen for the 'finished' event        
+    },
+
+    drawBoard(board) {
+        this.board.drawBoard(board);
     },
 
     setActivePlayer(gameBoardOrder, timeout) {
         this._players.forEach((player) => { player.avatar.stopCountDown(); player.avatar.deactivate(); });
         this._players[gameBoardOrder].avatar.activate();
         this._players[gameBoardOrder].avatar.startCountDown(timeout);
-        this._players[gameBoardOrder].hand._click = false;
+
+        this._round = ROUNDS.START_STEP;
+        this._selectPosition = -1;
+        this._targetPosition = -1;
+        this._availablePositions = [];
+        this.board.clearAvailCells();
     },
 
     stopPlayer(gameBoardOrder) {
@@ -90,36 +98,33 @@ cc.Class({
         this._players[gameBoardOrder].avatar.deactivate();
     },
 
-    askPlayer(currentPlayer, drawCard, deckCardsNum, discardCard, discardPlayer) {
+    askPlayer(currentPlayer) {
         this._currentPlayer = currentPlayer;
         this.setActivePlayer(currentPlayer, TIME_LIMIT);
-        this._players[currentPlayer].setDrawCard(drawCard);
-        this.board.clearBoard(deckCardsNum);
-        if (discardCard) {
-            this._players[discardPlayer].addDiscardCard(discardCard);
-        }
     },
 
-    endGameF(windsList, winners, winner) {
+    setAvailCells(scopes) {
+        this._availablePositions = scopes;
+        this.board.setAvailCells(scopes);
+    },
+
+    confirmMove(gameBoardOrder) {
+        this._round = ROUNDS.MOVE_UNIT;
+    },
+
+    endGame(winner) {
         this.notification.active = true;
-        this.endRound.node.active = false;
-        this.endGame.node.active = true;
         this.winNotification.node.active = false;
         this.loseNotification.node.active = false;
-        this.endGame.setWinners(windsList, winners);
-
-        this.scheduleOnce(() => {
-            this.endGame.node.active = false;
-            if (winner.indexOf(0) !== -1) {
-                this.winNotification.node.active = true;
-                this.winNotification.setAmount(2000);
-                Audio.playEffect ("gameWinner");
-            } else {
-                this.loseNotification.node.active = true;
-                this.loseNotification.setWinnerName("player" + (winner[0] + 1));
-                Audio.playEffect ("gameLooser");
-            }
-        }, 5);
+        if (winner === 0) {
+            this.winNotification.node.active = true;
+            this.winNotification.setAmount(2000);
+            Audio.playEffect("gameWinner");
+        } else {
+            this.loseNotification.node.active = true;
+            this.loseNotification.setWinnerName("player" + (winner + 1));
+            Audio.playEffect("gameLooser");
+        }
     },
 
     loadSkin() {

@@ -12,16 +12,22 @@ export const ClientCommService = {
 
         switch (messageType) {
             case MESSAGE_TYPE.SC_START_GAME:
-                global.scenes['gameScene'].start1(params.winds);
+                global.scenes['gameScene'].start1();
                 break;
             case MESSAGE_TYPE.SC_DRAW_BOARD:
                 global.scenes['gameScene'].drawBoard(params.board);
                 break;
             case MESSAGE_TYPE.SC_ASK_PLAYER:
-                global.scenes['gameScene'].askPlayer(params.currentPlayer, params.drawCard, params.deckCardsNum, params.discardCard, params.discardPlayer);
+                global.scenes['gameScene'].askPlayer(params.currentPlayer);
+                break;
+            case MESSAGE_TYPE.SC_AVAIL_CELLS:
+                global.scenes['gameScene'].setAvailCells(params.scopes);
+                break;
+            case MESSAGE_TYPE.SC_CONFIRM_MOVE:
+                global.scenes['gameScene'].confirmMove(params.currentPlayer);
                 break;
             case MESSAGE_TYPE.SC_END_GAME:
-                global.scenes['gameScene'].endGameF(params.windsList, params.winners, params.winner);
+                global.scenes['gameScene'].endGame(params.winner);
                 break;
         }
     },
@@ -30,8 +36,16 @@ export const ClientCommService = {
         ServerCommService.onReceiveMessage(messageType, data, room);
     },
 
+    sendSelectTile(pos) {
+        this.send(MESSAGE_TYPE.CS_SELECT_TILE, { pos: pos }, 1);
+    },
+
+    sendClaimMove(selectPos, targetPos) {
+        this.send(MESSAGE_TYPE.CS_CLAIM_MOVE, { selectPos, targetPos }, 1);
+    },
+
     sendClaimPass(player) {
-        this.send(MESSAGE_TYPE.CS_CLAIM_PASS, { player: player });
+        this.send(MESSAGE_TYPE.CS_CLAIM_PASS, { player: player }, 1);
     },
 
     sendRestartGame(player) {
