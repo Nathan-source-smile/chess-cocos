@@ -1,3 +1,5 @@
+const { TOTAL_TIME } = require("./Common/Constants");
+
 var gameVars = {
   values: [
     'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
@@ -27,6 +29,12 @@ var gameVars = {
   moveScopes: [], // available areas with string
 
   winner: -1, // you: 0, enemy: 1
+
+  player1_remainTime: TOTAL_TIME,
+  player2_remainTime: TOTAL_TIME,
+  currentTime: null,
+  checkMate: false,
+  endGame: false,
 };
 
 module.exports = gameVars;

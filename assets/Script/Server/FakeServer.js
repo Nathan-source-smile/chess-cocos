@@ -1,7 +1,7 @@
 // import { MESSAGE_TYPE } from "../Common/Messages";
 var MESSAGE_TYPE = require('../Common/Messages');
 import { ClientCommService } from "../ClientCommService";
-import { TIME_LIMIT, ALARM_LIMIT, PLAYERS } from "../Common/Constants";
+import { TIME_LIMIT, ALARM_LIMIT, PLAYERS, TOTAL_TIME } from "../Common/Constants";
 import { myTurn } from "../GameVars";
 var gameVars = require("GameVars");
 
@@ -961,7 +961,7 @@ function checkWhite(n, values) {
 }
 
 function checkWinner() {
-    if (!gameVars.myTurn) {
+    if (gameVars.myTurn) {
         var effects = [];
         for (var n = 0; n < 64; n++) {
             if ("prnbqk".indexOf(gameVars.values[n]) >= 0) {
@@ -1022,6 +1022,7 @@ function checkWinner() {
         if (bestEffect >= 100) {
             // alert("You Win");
             gameVars.winner = 0;
+            gameVars.checkMate = true;
         }
     } else {
         var effects = [];
@@ -1084,6 +1085,7 @@ function checkWinner() {
         if (bestEffect >= 100) {
             // alert("Enemy Win");
             gameVars.winner = 1;
+            gameVars.checkMate = true;
         }
     }
 }
@@ -1145,7 +1147,12 @@ function startGame() {
     gameVars.moveable = false;
     gameVars.moveTarget = "";
     gameVars.moveScopes = [];
+    gameVars.player1_remainTime = TOTAL_TIME;
+    gameVars.player2_remainTime = TOTAL_TIME;
+    gameVars.currentTime = new Date();
     gameVars.winner = -1;
+    gameVars.checkMate = false;
+    gameVars.endGame = false;
 
     ServerCommService.send(
         MESSAGE_TYPE.SC_START_GAME,
@@ -1173,44 +1180,101 @@ function askPlayer() {
     trace("askPlayer:", gameVars.myTurn);
     TimeoutManager.clearNextTimeout();
 
-    checkWinner();
-    if (gameVars.winner !== -1) {
+    TimeoutManager.setNextTimeout(function () {
+        gameVars.endGame = true;
         ServerCommService.send(
             MESSAGE_TYPE.SC_END_GAME,
             {
                 winner: gameVars.winner,
+                checkMate: gameVars.checkMate,
             },
             [0, 1]
         );
+    }, gameVars.myTurn ? gameVars.player1_remainTime : gameVars.player2_remainTime);
+
+    var cuTime = new Date();
+    var deltaTime = Math.floor((cuTime.getTime() - gameVars.currentTime.getTime()) / 1000);
+    if (gameVars.myTurn) {
+        gameVars.player2_remainTime -= deltaTime;
     } else {
-        ServerCommService.send(
-            MESSAGE_TYPE.SC_ASK_PLAYER,
-            {
-                currentPlayer: gameVars.myTurn ? 0 : 1,
-            },
-            [0, 1]
-        );
-        TimeoutManager.setNextTimeout(function () {
-            gameVars.myTurn = !gameVars.myTurn;
-            askPlayer();
-        });
+        gameVars.player1_remainTime -= deltaTime;
     }
+    // console.warn(deltaTime, cuTime.getTime(), gameVars.currentTime.getTime());
+    gameVars.currentTime = cuTime;
+
+    ServerCommService.send(
+        MESSAGE_TYPE.SC_ASK_PLAYER,
+        {
+            currentPlayer: gameVars.myTurn ? 0 : 1,
+            remainTime: gameVars.myTurn ? gameVars.player1_remainTime : gameVars.player2_remainTime,
+        },
+        [0, 1]
+    );
+    // TimeoutManager.setNextTimeout(function () {
+    //     gameVars.myTurn = !gameVars.myTurn;
+    //     askPlayer();
+    // });
 }
 
 function selectTile(params, room) {
     var n = params.pos;
-    console.log(n, gameVars.values);
-    var target = gameVars.values[n];
 
     var scopes;
-    if (gameVars.myTurn)
+    if (gameVars.myTurn) {
         scopes = checkBlack(n, gameVars.values) || [];
-    else
+        if (gameVars.values[n] === 'l') {
+            for (var y = 0; y < 64; y++) {
+                if ("prnbkq".indexOf(gameVars.values[y]) >= 0) {
+                    var checkScp = [];
+                    if (gameVars.values[y] === 'p') {
+                        var x = y;
+                        x += 8;
+                        if (x % 8 != 0) {
+                            checkScp.push(x - 1);
+                        }
+                        if (x % 8 != 7) {
+                            checkScp.push(x + 1);
+                        }
+                    } else {
+                        checkScp = checkWhite(y, gameVars.values) || [];
+                    }
+                    for (var z = 0; z < checkScp.length; z++) {
+                        if (scopes.indexOf(checkScp[z]) > -1) {
+                            scopes.splice(scopes.indexOf(checkScp[z]), 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
         scopes = checkWhite(n, gameVars.values) || [];
-
-    console.log(scopes);
-
-    var x = n;
+        if (gameVars.values[n] === 'k') {
+            // debugger;
+            for (var y = 0; y < 64; y++) {
+                if ("tmvwlo".indexOf(gameVars.values[y]) >= 0) {
+                    var checkScp = [];
+                    if (gameVars.values[y] === 'o') {
+                        var x = y;
+                        x -= 8;
+                        if (x % 8 != 0) {
+                            checkScp.push(x - 1);
+                        }
+                        if (x % 8 != 7) {
+                            checkScp.push(x + 1);
+                        }
+                    } else {
+                        checkScp = checkBlack(y, gameVars.values) || [];
+                    }
+                    for (var z = 0; z < checkScp.length; z++) {
+                        if (scopes.indexOf(checkScp[z]) > -1) {
+                            scopes.splice(scopes.indexOf(checkScp[z]), 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (scopes.length > 0) {
         gameVars.moveable = true;
@@ -1220,7 +1284,6 @@ function selectTile(params, room) {
     else {
 
     }
-
 
     ServerCommService.send(
         MESSAGE_TYPE.SC_AVAIL_CELLS,
@@ -1253,7 +1316,7 @@ function moveTile(params, room) {
                         for (var z = 0; z < checkScp.length; z++) {
                             if (checkArr[checkScp[z]] === 'l') {
                                 if (!saveKing) {
-                                    alert('Save Your King');
+                                    // alert('Save Your King');
                                     gameVars.winner = 1;
                                     saveKing = true;
                                 }
@@ -1268,7 +1331,7 @@ function moveTile(params, room) {
                         for (var z = 0; z < checkScp.length; z++) {
                             if (checkArr[checkScp[z]] === 'k') {
                                 if (!saveKing) {
-                                    alert('Save Enemy King');
+                                    // alert('Save Enemy King');
                                     gameVars.winner = 0;
                                     saveKing = true;
                                 }
@@ -1282,7 +1345,7 @@ function moveTile(params, room) {
 
                 gameVars.winner = -1;
 
-                TimeoutManager.clearNextTimeout();
+                // TimeoutManager.clearNextTimeout();
 
                 gameVars.values[n] = gameVars.values[gameVars.moveTarget];
                 gameVars.values[gameVars.moveTarget] = 0;
@@ -1349,6 +1412,7 @@ function moveTile(params, room) {
                     MESSAGE_TYPE.SC_DRAW_BOARD,
                     {
                         board: gameVars.values,
+                        target: n,
                     },
                     [0, 1]
                 );
@@ -1359,8 +1423,68 @@ function moveTile(params, room) {
                     },
                     [0, 1]
                 );
-                gameVars.myTurn = !gameVars.myTurn;
-                askPlayer();
+
+                checkWinner();
+
+                if (gameVars.checkMate) {
+                    TimeoutManager.clearNextTimeout();
+                    gameVars.endGame = true;
+                    ServerCommService.send(
+                        MESSAGE_TYPE.SC_END_GAME,
+                        {
+                            winner: gameVars.winner,
+                            checkMate: gameVars.checkMate,
+                        },
+                        [0, 1]
+                    );
+                } else {
+                    // check the check
+                    var saveKingTemp = false;
+                    if (!gameVars.myTurn) {
+                        for (var y = 0; y < 64; y++) {
+                            if ("prnbkq".indexOf(gameVars.values[y]) >= 0) {
+                                var checkScp = checkWhite(y, gameVars.values) || [];
+                                for (var z = 0; z < checkScp.length; z++) {
+                                    if (gameVars.values[checkScp[z]] === 'l') {
+                                        if (!saveKingTemp) {
+                                            // alert('Save Your King');
+                                            saveKingTemp = true;
+                                            ServerCommService.send(
+                                                MESSAGE_TYPE.SC_CHECK,
+                                                {
+                                                },
+                                                [0, 1],
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (var y = 0; y < 64; y++) {
+                            if ("otmvwl".indexOf(gameVars.values[y]) >= 0) {
+                                var checkScp = checkBlack(y, gameVars.values) || [];
+                                for (var z = 0; z < checkScp.length; z++) {
+                                    if (gameVars.values[checkScp[z]] === 'k') {
+                                        if (!saveKingTemp) {
+                                            // alert('Save Enemy King');
+                                            saveKingTemp = true;
+                                            ServerCommService.send(
+                                                MESSAGE_TYPE.SC_CHECK,
+                                                {
+                                                },
+                                                [0, 1],
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    gameVars.myTurn = !gameVars.myTurn;
+                    askPlayer();
+                }
             }
         }
     }

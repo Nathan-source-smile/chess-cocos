@@ -1,3 +1,4 @@
+import { TOTAL_TIME } from "./Common/Constants";
 import GlobalData from "./Common/GlobalData";
 var global = require("global");
 
@@ -37,6 +38,14 @@ export default cc.Class({
             default: null,
             type: cc.Node
         },
+        totalTimeSprite: {
+            default: null,
+            type: cc.Sprite,
+        },
+        totalTimeLabel: {
+            default: null,
+            type: cc.Label,
+        },
         player: -1,
         // botIconNode: {
         //     default: null,
@@ -44,6 +53,9 @@ export default cc.Class({
         // },
         _seatWind: null,
         _discardCard: null,
+        _remainTime: 0,
+        _startTime: 0,
+        _activate: false,
     },
 
     onLoad() {
@@ -101,17 +113,21 @@ export default cc.Class({
         this.roundScore.string = score + "/4";
     },
 
-    activate() {
+    activate(remainTime) {
         this.usernameLabel.node.color = (new cc.Color()).fromHEX("FFFFFF");
         this.roundScore.node.color = (new cc.Color()).fromHEX("FFFFFF");
         this.roundScore.node.color = (new cc.Color()).fromHEX("EADCCA");
         this.loadBackgrounds(true);
+        this._remainTime = remainTime;
+        this._startTime = cc.director.getTotalTime();
+        this._activate = true;
     },
 
     deactivate() {
         this.usernameLabel.node.color = (new cc.Color()).fromHEX("582C14");
         this.roundScore.node.color = (new cc.Color()).fromHEX("582C14");
         this.loadBackgrounds(false);
+        this._activate = false;
     },
 
     hideCountDown() {
@@ -131,18 +147,33 @@ export default cc.Class({
         this.playerGameDataBackgroundSprite.spriteFrame = spriteFrame;
         spriteFrame = GlobalData.imgAtlas.getSpriteFrame(scoreBackgroundPath);
         this.scoreBackgroundSprite.spriteFrame = spriteFrame;
-        this.playerGameDataBackgroundSprite.node.width = 93;
-        this.playerGameDataBackgroundSprite.node.height = 125;
-        this.scoreBackgroundSprite.node.width = 92;
-        this.scoreBackgroundSprite.node.height = 37;
+        // this.playerGameDataBackgroundSprite.node.width = 93;
+        // this.playerGameDataBackgroundSprite.node.height = 125;
+        // this.scoreBackgroundSprite.node.width = 92;
+        // this.scoreBackgroundSprite.node.height = 37;
     },
 
-
+    clear() {
+        this._remainTime = TOTAL_TIME;
+        let sec = this._remainTime;
+        // console.log(sec);
+        let min_string = String(Math.floor(sec / 60)).padStart(2, '0') + ":";
+        let second_string = String(sec % 60).padStart(2, '0');
+        this.totalTimeLabel.string = min_string + second_string;
+    },
 
     start() {
     },
 
-    update(dt) { },
+    update(dt) {
+        if (this._activate && !global.scenes['gameScene']._endGame) {
+            let sec = this._remainTime - Math.floor((cc.director.getTotalTime() - this._startTime) / 1000);
+            // console.log(sec);
+            let min_string = String(Math.floor(sec / 60)).padStart(2, '0') + ":";
+            let second_string = String(sec % 60).padStart(2, '0');
+            this.totalTimeLabel.string = min_string + second_string;
+        }
+    },
 
     getAvatarUrl(avatar) {
         //return "http://cdn." + global.domain + "/images/avatar/users/" + avatar + ".png";

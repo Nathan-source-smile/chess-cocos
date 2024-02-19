@@ -14,7 +14,7 @@ export default cc.Class({
     start() {
     },
 
-    drawBoard(board) {
+    drawBoard(board, target) {
         this.node.removeAllChildren();
         this._tiles.forEach((tile) => {
             tile.node.destroy();
@@ -25,6 +25,11 @@ export default cc.Class({
             const tileComponent = tileNode.getComponent(Tile);
             tileComponent.setTile(tile, i);
             this.node.addChild(tileNode);
+            if (target === i) {
+                tileComponent.released.active = true;
+            } else {
+                tileComponent.released.active = false;
+            }
             this._tiles.push(tileComponent);
         });
     },
@@ -42,6 +47,16 @@ export default cc.Class({
     clearAvailCells() {
         this._tiles.forEach((tile) => {
             tile.mask.active = false;
+        });
+    },
+
+    setSelectedTile(pos) {
+        this._tiles.forEach((tile) => {
+            if (pos === tile._id) {
+                tile.selected.active = true;
+            } else {
+                tile.selected.active = false;
+            }
         });
     },
 

@@ -1,11 +1,15 @@
 import { loadImgAtlas } from "./AssetLoader";
 import { FakeServer } from "./Server/FakeServer";
 import TopBar from "./TopBar";
-import { ROUNDS, TIME_LIMIT, TOTAL_TILES } from "./Common/Constants";
+import { ROUNDS } from "./Common/Constants";
 import Player from "./Player";
 import Board from "./Board";
 import WinNotification from "./WinNotification";
 import LoseNotification from "./LoseNotification";
+import CheckMateNotification from "./CheckMateNotification.js";
+import CheckNotification from "./CheckNotification.js";
+import DrawNotification from "./DrawNotification.js";
+import TimeOverNotification from "./TimeOverNotification.js";
 
 var Audio = require("./Audio.js");
 var lang = require("./lang.js");
@@ -25,6 +29,10 @@ cc.Class({
         notification: cc.Node,
         winNotification: WinNotification,
         loseNotification: LoseNotification,
+        drawNotification: DrawNotification,
+        checkNotification: CheckNotification,
+        checkMateNotification: CheckMateNotification,
+        timeOverNotification: TimeOverNotification,
 
         _currentPlayer: -1,
         _players: [],
@@ -32,6 +40,8 @@ cc.Class({
         _targetPosition: -1,
         _availablePositions: [],
         _round: ROUNDS.START_GAME,
+        _time: 0,
+        _endGame: false,
 
         isMobile: false,
         coinsChangePerSecond: 0,
@@ -72,19 +82,20 @@ cc.Class({
     start1() {
         this.notification.active = false;
         this._round = ROUNDS.START_GAME;
+        this._endGame = false;
         this._players.forEach((player, index) => {
+            player.avatar.clear();
         });
         // Listen for the 'finished' event        
     },
 
-    drawBoard(board) {
-        this.board.drawBoard(board);
+    drawBoard(board, target) {
+        this.board.drawBoard(board, target);
     },
 
-    setActivePlayer(gameBoardOrder, timeout) {
+    setActivePlayer(gameBoardOrder, remainTime) {
         this._players.forEach((player) => { player.avatar.stopCountDown(); player.avatar.deactivate(); });
-        this._players[gameBoardOrder].avatar.activate();
-        this._players[gameBoardOrder].avatar.startCountDown(timeout);
+        this._players[gameBoardOrder].avatar.activate(remainTime);
 
         this._round = ROUNDS.START_STEP;
         this._selectPosition = -1;
@@ -98,9 +109,9 @@ cc.Class({
         this._players[gameBoardOrder].avatar.deactivate();
     },
 
-    askPlayer(currentPlayer) {
+    askPlayer(currentPlayer, remainTime) {
         this._currentPlayer = currentPlayer;
-        this.setActivePlayer(currentPlayer, TIME_LIMIT);
+        this.setActivePlayer(currentPlayer, remainTime);
     },
 
     setAvailCells(scopes) {
@@ -112,19 +123,53 @@ cc.Class({
         this._round = ROUNDS.MOVE_UNIT;
     },
 
-    endGame(winner) {
-        this.notification.active = true;
+    disableNotifications() {
         this.winNotification.node.active = false;
         this.loseNotification.node.active = false;
-        if (winner === 0) {
-            this.winNotification.node.active = true;
-            this.winNotification.setAmount(2000);
-            Audio.playEffect("gameWinner");
+        this.drawNotification.node.active = false;
+        this.checkNotification.node.active = false;
+        this.checkMateNotification.node.active = false;
+        this.timeOverNotification.node.active = false;
+    },
+
+    showCheck() {
+        this.notification.active = true;
+        this.disableNotifications();
+        this.checkNotification.node.active = true;
+        this.checkNotification.setText();
+        this.scheduleOnce(() => {
+            this.notification.active = false;
+            this.checkNotification.node.active = false;
+        }, 1);
+    },
+
+    endGame(winner, checkMate) {
+        this.notification.active = true;
+        this._endGame = true;
+        this.disableNotifications();
+        if (checkMate) {
+            this.checkMateNotification.node.active = true;
+            this.checkMateNotification.setText();
         } else {
-            this.loseNotification.node.active = true;
-            this.loseNotification.setWinnerName("player" + (winner + 1));
-            Audio.playEffect("gameLooser");
+            this.timeOverNotification.node.active = true;
+            this.timeOverNotification.setText();
         }
+        let self = this;
+        this.scheduleOnce(() => {
+            this.disableNotifications();
+            if (winner === 0) {
+                self.winNotification.node.active = true;
+                // self.winNotification.setAmount(2000);
+                Audio.playEffect("gameWinner");
+            } else if (winner === 1) {
+                self.loseNotification.node.active = true;
+                Audio.playEffect("gameLooser");
+            } else if (winner === -1) {
+                self.drawNotification.node.active = true;
+                // self.drawNotification.setAmount(2000);
+                Audio.playEffect("gameDrawer");
+            }
+        }, 3);
     },
 
     loadSkin() {
@@ -199,6 +244,9 @@ cc.Class({
 
     // called every frame
     update: function (dt) {
+        if (this._selectPosition !== -1) {
+            this.board.setSelectedTile(this._selectPosition);
+        }
     },
 
 });

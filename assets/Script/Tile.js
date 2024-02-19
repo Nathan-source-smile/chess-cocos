@@ -9,6 +9,8 @@ export default cc.Class({
     properties: {
         background: cc.Sprite,
         mask: cc.Node,
+        selected: cc.Node,
+        released: cc.Node,
         label: cc.Label,
         id: -1,
 
@@ -22,20 +24,65 @@ export default cc.Class({
     setTile(tile, i) {
         this._id = i;
         this._value = tile;
-        if (['t', 'm', 'v', 'w', 'l', 'o'].includes(this._value))
+
+        let spriteName = "";
+        if (['t', 'm', 'v', 'w', 'l', 'o'].includes(this._value)) {
             this._user = 0;
-        else if (['r', 'n', 'b', 'q', 'k', 'p'].includes(this._value))
+            switch (this._value) {
+                case 't':
+                    spriteName = 'white-rook';
+                    break;
+                case 'm':
+                    spriteName = 'white-knight';
+                    break;
+                case 'v':
+                    spriteName = 'white-bishop';
+                    break;
+                case 'w':
+                    spriteName = 'white-queen';
+                    break;
+                case 'l':
+                    spriteName = 'white-king';
+                    break;
+                case 'o':
+                    spriteName = 'white-pawn';
+                    break;
+            }
+        }
+        else if (['r', 'n', 'b', 'q', 'k', 'p'].includes(this._value)) {
             this._user = 1;
+            switch (this._value) {
+                case 'r':
+                    spriteName = 'black-rook';
+                    break;
+                case 'n':
+                    spriteName = 'black-knight';
+                    break;
+                case 'b':
+                    spriteName = 'black-bishop';
+                    break;
+                case 'q':
+                    spriteName = 'black-queen';
+                    break;
+                case 'k':
+                    spriteName = 'black-king';
+                    break;
+                case 'p':
+                    spriteName = 'black-pawn';
+                    break;
+            }
+        }
 
         this.label.string = this._value;
 
-        var spriteName = "";
-        this.background.spriteFrame = GlobalData.imgAtlas.getSpriteFrame("tiles-" + spriteName);
+
+        this.background.spriteFrame = GlobalData.imgAtlas.getSpriteFrame("fichas-" + spriteName);
     },
 
     onClickTile() {
-        console.log(this._id, this._value);
-        if (this._user === global.scenes['gameScene']._currentPlayer
+        // console.log(this._id, this._value);
+        if (!global.scenes['gameScene']._endGame
+            && this._user === global.scenes['gameScene']._currentPlayer
             && (global.scenes['gameScene']._round === ROUNDS.START_STEP || global.scenes['gameScene']._round === ROUNDS.SELECT_UNIT)) {
             global.scenes['gameScene']._round = ROUNDS.SELECT_UNIT;
             global.scenes['gameScene']._selectPosition = this._id;
@@ -49,5 +96,6 @@ export default cc.Class({
         }
     },
 
-    update(dt) { },
+    update(dt) {
+    },
 });
