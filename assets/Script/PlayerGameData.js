@@ -1,4 +1,4 @@
-import { TOTAL_TIME } from "./Common/Constants";
+import { TOTAL_ROUND, TOTAL_TIME } from "./Common/Constants";
 import GlobalData from "./Common/GlobalData";
 var global = require("global");
 
@@ -60,6 +60,7 @@ export default cc.Class({
 
     onLoad() {
         this.countDownNode.active = false;
+        this.setRoundScore(0);
     },
 
     startCountDown(seconds) {
@@ -110,7 +111,7 @@ export default cc.Class({
     },
 
     setRoundScore(score) {
-        this.roundScore.string = score + "/4";
+        this.roundScore.string = score + "/" + TOTAL_ROUND;
     },
 
     activate(remainTime) {
@@ -153,13 +154,14 @@ export default cc.Class({
         // this.scoreBackgroundSprite.node.height = 37;
     },
 
-    clear() {
+    clear(score) {
         this._remainTime = TOTAL_TIME;
         let sec = this._remainTime;
         // console.log(sec);
         let min_string = String(Math.floor(sec / 60)).padStart(2, '0') + ":";
         let second_string = String(sec % 60).padStart(2, '0');
         this.totalTimeLabel.string = min_string + second_string;
+        this.setRoundScore(score);
     },
 
     start() {

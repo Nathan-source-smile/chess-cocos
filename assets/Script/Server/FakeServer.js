@@ -1,8 +1,7 @@
 // import { MESSAGE_TYPE } from "../Common/Messages";
 var MESSAGE_TYPE = require('../Common/Messages');
 import { ClientCommService } from "../ClientCommService";
-import { TIME_LIMIT, ALARM_LIMIT, PLAYERS, TOTAL_TIME } from "../Common/Constants";
-import { myTurn } from "../GameVars";
+import { TIME_LIMIT, ALARM_LIMIT, PLAYERS, TOTAL_TIME, TOTAL_ROUND } from "../Common/Constants";
 var gameVars = require("GameVars");
 
 //--------Defining global variables----------
@@ -1122,10 +1121,16 @@ function onInit() {
 }
 
 function init() {
+    gameVars.player1_score = 0;
+    gameVars.player2_score = 0;
     startGame();
 }
 
 function startGame() {
+    if (gameVars.player1_score === TOTAL_ROUND || gameVars.player2_score === TOTAL_ROUND) {
+        gameVars.player1_score = 0;
+        gameVars.player2_score = 0;
+    }
     gameVars.values = [
         'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
         'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
@@ -1157,6 +1162,8 @@ function startGame() {
     ServerCommService.send(
         MESSAGE_TYPE.SC_START_GAME,
         {
+            p1Score: gameVars.player1_score,
+            p2Score: gameVars.player2_score,
         },
         [0, 1]
     );
@@ -1182,11 +1189,18 @@ function askPlayer() {
 
     TimeoutManager.setNextTimeout(function () {
         gameVars.endGame = true;
+        if (gameVars.winner === 0) {
+            gameVars.player1_score += 1;
+        } else if (gameVars.winner === 1) {
+            gameVars.player2_score += 1;
+        }
         ServerCommService.send(
             MESSAGE_TYPE.SC_END_GAME,
             {
                 winner: gameVars.winner,
                 checkMate: gameVars.checkMate,
+                p1Score: gameVars.player1_score,
+                p2Score: gameVars.player2_score,
             },
             [0, 1]
         );
@@ -1429,14 +1443,21 @@ function moveTile(params, room) {
                 if (gameVars.checkMate) {
                     TimeoutManager.clearNextTimeout();
                     gameVars.endGame = true;
+                    if (gameVars.winner === 0) {
+                        gameVars.player1_score += 1;
+                    } else if (gameVars.winner === 1) {
+                        gameVars.player2_score += 1;
+                    }
                     ServerCommService.send(
                         MESSAGE_TYPE.SC_END_GAME,
                         {
                             winner: gameVars.winner,
                             checkMate: gameVars.checkMate,
+                            p1Score: gameVars.player1_score,
+                            p2Score: gameVars.player2_score,
                         },
                         [0, 1]
-                    );
+                    );                    
                 } else {
                     // check the check
                     var saveKingTemp = false;

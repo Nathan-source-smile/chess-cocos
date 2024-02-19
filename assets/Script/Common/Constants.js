@@ -1,4 +1,5 @@
 export const TOTAL_TIME = 20 * 60;
+export const TOTAL_ROUND = 3;
 export const TIME_LIMIT = 15;
 export const ALARM_LIMIT = 0;
 export const PLAYERS = 4;

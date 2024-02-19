@@ -79,13 +79,12 @@ cc.Class({
             });
     },
 
-    start1() {
+    start1(plScore, p2Score) {
         this.notification.active = false;
         this._round = ROUNDS.START_GAME;
         this._endGame = false;
-        this._players.forEach((player, index) => {
-            player.avatar.clear();
-        });
+        this._players[0].avatar.clear(plScore);
+        this._players[1].avatar.clear(p2Score);
         // Listen for the 'finished' event        
     },
 
@@ -143,7 +142,9 @@ cc.Class({
         }, 1);
     },
 
-    endGame(winner, checkMate) {
+    endGame(winner, checkMate, p1Score, p2Score) {
+        this._players[0].avatar.setRoundScore(p1Score);
+        this._players[1].avatar.setRoundScore(p2Score);
         this.notification.active = true;
         this._endGame = true;
         this.disableNotifications();
@@ -169,7 +170,7 @@ cc.Class({
                 // self.drawNotification.setAmount(2000);
                 Audio.playEffect("gameDrawer");
             }
-        }, 3);
+        }, 2);
     },
 
     loadSkin() {

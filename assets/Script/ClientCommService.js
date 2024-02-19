@@ -12,7 +12,7 @@ export const ClientCommService = {
 
         switch (messageType) {
             case MESSAGE_TYPE.SC_START_GAME:
-                global.scenes['gameScene'].start1();
+                global.scenes['gameScene'].start1(params.p1Score, params.p2Score);
                 break;
             case MESSAGE_TYPE.SC_DRAW_BOARD:
                 global.scenes['gameScene'].drawBoard(params.board, params.target);
@@ -30,7 +30,7 @@ export const ClientCommService = {
                 global.scenes['gameScene'].showCheck();
                 break;
             case MESSAGE_TYPE.SC_END_GAME:
-                global.scenes['gameScene'].endGame(params.winner, params.checkMate);
+                global.scenes['gameScene'].endGame(params.winner, params.checkMate, params.p1Score, params.p2Score);
                 break;
         }
     },

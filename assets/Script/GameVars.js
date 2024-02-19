@@ -35,6 +35,8 @@ var gameVars = {
   currentTime: null,
   checkMate: false,
   endGame: false,
+  player1_score: 0,
+  player2_score: 0,
 };
 
 module.exports = gameVars;
