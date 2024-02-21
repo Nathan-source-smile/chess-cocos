@@ -54,9 +54,13 @@ export const ClientCommService = {
         this.send(MESSAGE_TYPE.CS_CLAIM_PASS, { player: player }, 1);
     },
 
+    sendResign(player) {
+        this.send(MESSAGE_TYPE.CS_CLAIM_END, { player: player }, 1);
+    },
+
     sendRestartGame(player) {
         this.send(MESSAGE_TYPE.CS_RESTART_GAME, { player: player }, 1);
-    },
+    },    
 
     sendCommand(type, params) {
         this.send(type, params, 1);

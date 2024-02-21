@@ -1140,6 +1140,7 @@ function initHandlers() {
     ServerCommService.addRequestHandler(MESSAGE_TYPE.CS_CLAIM_PASS, onPass);
     ServerCommService.addRequestHandler(MESSAGE_TYPE.CS_SELECT_TILE, onSelectTile);
     ServerCommService.addRequestHandler(MESSAGE_TYPE.CS_CLAIM_MOVE, onMoveTile);
+    ServerCommService.addRequestHandler(MESSAGE_TYPE.CS_CLAIM_END, onClaimEnd);
 }
 
 function onStartGame() {
@@ -1160,6 +1161,10 @@ function onSelectTile(params, room) {
 
 function onMoveTile(params, room) {
     moveTile(params, room);
+}
+
+function onClaimEnd(params, room) {
+    claimEnd(params, room);
 }
 
 function onInit() {
@@ -1842,6 +1847,21 @@ function moveTile(params, room) {
             }
         }
     }
+}
+
+function claimEnd(params, room) {
+    gameVars.winner = params.player === 0 ? 1 : 0;
+    gameVars.endGame = true;
+    ServerCommService.send(
+        MESSAGE_TYPE.SC_END_GAME,
+        {
+            winner: gameVars.winner,
+            checkMate: gameVars.checkMate,
+            p1Score: gameVars.player1_score,
+            p2Score: gameVars.player2_score,
+        },
+        [0, 1]
+    );
 }
 
 export const ServerCommService = {

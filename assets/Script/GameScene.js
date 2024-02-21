@@ -10,6 +10,7 @@ import CheckMateNotification from "./CheckMateNotification.js";
 import CheckNotification from "./CheckNotification.js";
 import DrawNotification from "./DrawNotification.js";
 import TimeOverNotification from "./TimeOverNotification.js";
+import { ClientCommService } from "./ClientCommService.js";
 
 var Audio = require("./Audio.js");
 var lang = require("./lang.js");
@@ -183,6 +184,10 @@ cc.Class({
                 Audio.playEffect("gameDrawer");
             }
         }, 2);
+    },
+
+    resign() {
+        ClientCommService.sendResign(this._currentPlayer);
     },
 
     getGameBoardOrder(order) {
