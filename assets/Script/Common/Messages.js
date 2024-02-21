@@ -6,6 +6,7 @@ var MESSAGE_TYPE = {
   SC_AVAIL_CELLS: "SC_AVAIL_CELLS",
   SC_CONFIRM_MOVE: "SC_CONFIRM_MOVE",
   SC_CHECK: "SC_CHECK",
+  SC_ALERT: "SC_ALERT",
   SC_END_GAME: "SC_END_GAME",
 
   // Messsages from Client to Server

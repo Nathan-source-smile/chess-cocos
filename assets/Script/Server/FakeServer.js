@@ -43,6 +43,14 @@ function checkBlack(n, values) {
                 }
             }
         }
+        if (gameVars.en1 !== -1) {
+            if (n % 8 !== 7 && (n + 1) === gameVars.en1) {
+                scopes.push(gameVars.en1 - 8);
+            }
+            if (n % 8 !== 0 && (n - 1) === gameVars.en1) {
+                scopes.push(gameVars.en1 - 8);
+            }
+        }
     }
 
     else if (target === "t") {
@@ -509,6 +517,14 @@ function checkWhite(n, values) {
                 if (x + 8 >= 0 && values[x + 8] === 0) {
                     scopes.push(x + 8);
                 }
+            }
+        }
+        if (gameVars.en2 !== -1) {
+            if (n % 8 !== 7 && (n + 1) === gameVars.en2) {
+                scopes.push(gameVars.en2 + 8);
+            }
+            if (n % 8 !== 0 && (n - 1) === gameVars.en2) {
+                scopes.push(gameVars.en2 + 8);
             }
         }
     }
@@ -1018,7 +1034,22 @@ function checkWinner() {
         }
 
         var bestEffect = Math.min.apply(null, effects);
-        if (bestEffect >= 100) {
+
+        var saveKingTemp = false;
+        for (var y = 0; y < 64; y++) {
+            if ("otmvwl".indexOf(gameVars.values[y]) >= 0) {
+                var checkScp = checkBlack(y, gameVars.values) || [];
+                for (var z = 0; z < checkScp.length; z++) {
+                    if (gameVars.values[checkScp[z]] === 'k') {
+                        if (!saveKingTemp) {
+                            // alert('Save Enemy King');
+                            saveKingTemp = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (bestEffect >= 100 && saveKingTemp) {
             // alert("You Win");
             gameVars.winner = 0;
             gameVars.checkMate = true;
@@ -1081,7 +1112,22 @@ function checkWinner() {
         }
 
         var bestEffect = Math.min.apply(null, effects);
-        if (bestEffect >= 100) {
+
+        var saveKingTemp = false;
+        for (var y = 0; y < 64; y++) {
+            if ("prnbkq".indexOf(gameVars.values[y]) >= 0) {
+                var checkScp = checkWhite(y, gameVars.values) || [];
+                for (var z = 0; z < checkScp.length; z++) {
+                    if (gameVars.values[checkScp[z]] === 'l') {
+                        if (!saveKingTemp) {
+                            // alert('Save Your King');
+                            saveKingTemp = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (bestEffect >= 100 && saveKingTemp) {
             // alert("Enemy Win");
             gameVars.winner = 1;
             gameVars.checkMate = true;
@@ -1127,10 +1173,10 @@ function init() {
 }
 
 function startGame() {
-    if (gameVars.player1_score === TOTAL_ROUND || gameVars.player2_score === TOTAL_ROUND) {
-        gameVars.player1_score = 0;
-        gameVars.player2_score = 0;
-    }
+    // if (gameVars.player1_score === TOTAL_ROUND || gameVars.player2_score === TOTAL_ROUND) {
+    gameVars.player1_score = 0;
+    gameVars.player2_score = 0;
+    // }
     gameVars.values = [
         'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
         'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
@@ -1140,6 +1186,15 @@ function startGame() {
         0, 0, 0, 0, 0, 0, 0, 0,
         'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
         't', 'm', 'v', 'w', 'l', 'v', 'm', 't'];
+    // gameVars.values = [
+    //     'k', 0, 0, 0, 0, 0, 0, 0,
+    //     0, 0, 0, 0, 0, 0, 'w', 0,
+    //     0, 0, 0, 0, 0, 0, 0, 0,
+    //     0, 0, 0, 0, 0, 0, 0, 0,
+    //     0, 0, 0, 0, 0, 0, 0, 0,
+    //     0, 0, 'l', 0, 0, 0, 0, 0,
+    //     0, 0, 0, 0, 0, 0, 0, 0,
+    //     0, 0, 0, 0, 0, 0, 0, 0,];
     gameVars.ck = false;
     gameVars.cr1 = false;
     gameVars.cr2 = false;
@@ -1158,6 +1213,11 @@ function startGame() {
     gameVars.winner = -1;
     gameVars.checkMate = false;
     gameVars.endGame = false;
+    gameVars.p1_50 = 0;
+    gameVars.p2_50 = 0;
+    gameVars.en1 = -1;
+    gameVars.en2 = -1;
+    gameVars.history = [];
 
     ServerCommService.send(
         MESSAGE_TYPE.SC_START_GAME,
@@ -1189,11 +1249,27 @@ function askPlayer() {
 
     TimeoutManager.setNextTimeout(function () {
         gameVars.endGame = true;
-        if (gameVars.winner === 0) {
-            gameVars.player1_score += 1;
-        } else if (gameVars.winner === 1) {
-            gameVars.player2_score += 1;
-        }
+        // if (gameVars.winner === 0) {
+        //     gameVars.player1_score += 1;
+        // } else if (gameVars.winner === 1) {
+        //     gameVars.player2_score += 1;
+        // }
+        ServerCommService.send(
+            MESSAGE_TYPE.SC_END_GAME,
+            {
+                winner: gameVars.winner,
+                checkMate: gameVars.checkMate,
+                p1Score: gameVars.player1_score,
+                p2Score: gameVars.player2_score,
+                time: true,
+            },
+            [0, 1]
+        );
+    }, gameVars.myTurn ? gameVars.player1_remainTime : gameVars.player2_remainTime);
+
+    // 50-move rule
+    if (gameVars.p1_50 === 50 && gameVars.p2_50 === 50) {
+        gameVars.endGame = true;
         ServerCommService.send(
             MESSAGE_TYPE.SC_END_GAME,
             {
@@ -1204,7 +1280,157 @@ function askPlayer() {
             },
             [0, 1]
         );
-    }, gameVars.myTurn ? gameVars.player1_remainTime : gameVars.player2_remainTime);
+        return;
+    }
+
+    // Threefold Repetition
+    if (gameVars.history.length > 8) {
+        var len = gameVars.history.length;
+        if (JSON.stringify(gameVars.history[len - 1]) === JSON.stringify(gameVars.history[len - 5]) && JSON.stringify(gameVars.history[len - 9]) === JSON.stringify(gameVars.history[len - 5])) {
+            gameVars.endGame = true;
+            ServerCommService.send(
+                MESSAGE_TYPE.SC_END_GAME,
+                {
+                    winner: gameVars.winner,
+                    checkMate: gameVars.checkMate,
+                    p1Score: gameVars.player1_score,
+                    p2Score: gameVars.player2_score,
+                },
+                [0, 1]
+            );
+            return;
+        }
+    }
+
+    // Stalemate
+    if (gameVars.myTurn) {
+        var sss = [];
+        for (var q = 0; q < 64; q++) {
+            if ('otmvwl'.indexOf(gameVars.values[q]) > -1) {
+                var scopes = [];
+                scopes = checkBlack(q, gameVars.values) || [];
+                var exp = [];
+                for (var i = 0; i < scopes.length; i++) {
+                    var checkArr = [];
+                    var saveKing = false;
+                    for (var z = 0; z < 64; z++) {
+                        checkArr[z] = gameVars.values[z];
+                    }
+
+                    checkArr[scopes[i]] = checkArr[q];
+                    checkArr[q] = 0;
+
+                    for (var y = 0; y < 64; y++) {
+                        if ("prnbkq".indexOf(checkArr[y]) >= 0) {
+                            var checkScp = checkWhite(y, checkArr) || [];
+                            for (var z = 0; z < checkScp.length; z++) {
+                                if (checkArr[checkScp[z]] === 'l') {
+                                    if (!saveKing) {
+                                        exp.push(i);
+                                        saveKing = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                var result = scopes.filter(function (value, index) {
+                    return exp.indexOf(index) === -1;
+                });
+                scopes = copyObject(result);
+                for (var r = 0; r < scopes.length; r++) {
+                    sss.push(scopes[r]);
+                }
+            }
+        }
+        if (sss.length === 0) {
+            gameVars.endGame = true;
+            ServerCommService.send(
+                MESSAGE_TYPE.SC_END_GAME,
+                {
+                    winner: gameVars.winner,
+                    checkMate: gameVars.checkMate,
+                    p1Score: gameVars.player1_score,
+                    p2Score: gameVars.player2_score,
+                },
+                [0, 1]
+            );
+            return;
+        }
+    } else {
+        var sss = [];
+        for (var q = 0; q < 64; q++) {
+            if ('prnbqk'.indexOf(gameVars.values[q]) > -1) {
+                var scopes = [];
+                scopes = checkWhite(q, gameVars.values) || [];
+                var exp = [];
+                for (var i = 0; i < scopes.length; i++) {
+                    var checkArr = [];
+                    var saveKing = false;
+                    for (var z = 0; z < 64; z++) {
+                        checkArr[z] = gameVars.values[z];
+                    }
+
+                    checkArr[scopes[i]] = checkArr[q];
+                    checkArr[q] = 0;
+
+                    for (var y = 0; y < 64; y++) {
+                        if ("tmvwlo".indexOf(checkArr[y]) >= 0) {
+                            var checkScp = checkBlack(y, checkArr) || [];
+                            for (var z = 0; z < checkScp.length; z++) {
+                                if (checkArr[checkScp[z]] === 'k') {
+                                    if (!saveKing) {
+                                        exp.push(i);
+                                        saveKing = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                var result = scopes.filter(function (value, index) {
+                    return exp.indexOf(index) === -1;
+                });
+                scopes = copyObject(result);
+                for (var r = 0; r < scopes.length; r++) {
+                    sss.push(scopes[r]);
+                }
+            }
+        }
+        if (sss.length === 0) {
+            gameVars.endGame = true;
+            ServerCommService.send(
+                MESSAGE_TYPE.SC_END_GAME,
+                {
+                    winner: gameVars.winner,
+                    checkMate: gameVars.checkMate,
+                    p1Score: gameVars.player1_score,
+                    p2Score: gameVars.player2_score,
+                },
+                [0, 1]
+            );
+            return;
+        }
+    }
+
+    // Dead Position
+    if (gameVars.p1Score > 13 && gameVars.p2Score > 13) {
+        var ttt = JSON.stringify(gameVars.values);
+        if (ttt.indexOf('p') === -1 && ttt.indexOf('o') === -1 && ttt.indexOf('w') === -1 && ttt.indexOf('q') === -1 && ttt.indexOf('n') === -1 && ttt.indexOf('m') === -1) {
+            gameVars.endGame = true;
+            ServerCommService.send(
+                MESSAGE_TYPE.SC_END_GAME,
+                {
+                    winner: gameVars.winner,
+                    checkMate: gameVars.checkMate,
+                    p1Score: gameVars.player1_score,
+                    p2Score: gameVars.player2_score,
+                },
+                [0, 1]
+            );
+            return;
+        }
+    }
 
     var cuTime = new Date();
     var deltaTime = Math.floor((cuTime.getTime() - gameVars.currentTime.getTime()) / 1000);
@@ -1234,60 +1460,78 @@ function selectTile(params, room) {
     var n = params.pos;
 
     var scopes;
+
+    // var checkArr = [];
+    // for (var z = 0; z < 64; z++) {
+    //     checkArr[z] = gameVars.values[z];
+    // }
+
+    // checkArr[n] = checkArr[gameVars.moveTarget];
+    // checkArr[gameVars.moveTarget] = 0;
+
     if (gameVars.myTurn) {
         scopes = checkBlack(n, gameVars.values) || [];
-        if (gameVars.values[n] === 'l') {
-            for (var y = 0; y < 64; y++) {
-                if ("prnbkq".indexOf(gameVars.values[y]) >= 0) {
-                    var checkScp = [];
-                    if (gameVars.values[y] === 'p') {
-                        var x = y;
-                        x += 8;
-                        if (x % 8 != 0) {
-                            checkScp.push(x - 1);
-                        }
-                        if (x % 8 != 7) {
-                            checkScp.push(x + 1);
-                        }
-                    } else {
-                        checkScp = checkWhite(y, gameVars.values) || [];
-                    }
-                    for (var z = 0; z < checkScp.length; z++) {
-                        if (scopes.indexOf(checkScp[z]) > -1) {
-                            scopes.splice(scopes.indexOf(checkScp[z]), 1);
-                        }
-                    }
-                }
-            }
-        }
+        // var exp = [];
+        // for (var i = 0; i < scopes.length; i++) {
+        //     var checkArr = [];
+        //     var saveKing = false;
+        //     for (var z = 0; z < 64; z++) {
+        //         checkArr[z] = gameVars.values[z];
+        //     }
+
+        //     checkArr[scopes[i]] = checkArr[n];
+        //     checkArr[n] = 0;
+
+        //     for (var y = 0; y < 64; y++) {
+        //         if ("prnbkq".indexOf(checkArr[y]) >= 0) {
+        //             var checkScp = checkWhite(y, checkArr) || [];
+        //             for (var z = 0; z < checkScp.length; z++) {
+        //                 if (checkArr[checkScp[z]] === 'l') {
+        //                     if (!saveKing) {
+        //                         exp.push(i);
+        //                         saveKing = true;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // var result = scopes.filter(function (value, index) {
+        //     return exp.indexOf(index) === -1;
+        // });
+        // scopes = copyObject(result);
     }
     else {
         scopes = checkWhite(n, gameVars.values) || [];
-        if (gameVars.values[n] === 'k') {
-            // debugger;
-            for (var y = 0; y < 64; y++) {
-                if ("tmvwlo".indexOf(gameVars.values[y]) >= 0) {
-                    var checkScp = [];
-                    if (gameVars.values[y] === 'o') {
-                        var x = y;
-                        x -= 8;
-                        if (x % 8 != 0) {
-                            checkScp.push(x - 1);
-                        }
-                        if (x % 8 != 7) {
-                            checkScp.push(x + 1);
-                        }
-                    } else {
-                        checkScp = checkBlack(y, gameVars.values) || [];
-                    }
-                    for (var z = 0; z < checkScp.length; z++) {
-                        if (scopes.indexOf(checkScp[z]) > -1) {
-                            scopes.splice(scopes.indexOf(checkScp[z]), 1);
-                        }
-                    }
-                }
-            }
-        }
+        // var exp = [];
+        // for (var i = 0; i < scopes.length; i++) {
+        //     var checkArr = [];
+        //     var saveKing = false;
+        //     for (var z = 0; z < 64; z++) {
+        //         checkArr[z] = gameVars.values[z];
+        //     }
+
+        //     checkArr[scopes[i]] = checkArr[n];
+        //     checkArr[n] = 0;
+
+        //     for (var y = 0; y < 64; y++) {
+        //         if ("tmvwlo".indexOf(checkArr[y]) >= 0) {
+        //             var checkScp = checkBlack(y, checkArr) || [];
+        //             for (var z = 0; z < checkScp.length; z++) {
+        //                 if (checkArr[checkScp[z]] === 'k') {
+        //                     if (!saveKing) {
+        //                         exp.push(i);
+        //                         saveKing = true;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // var result = scopes.filter(function (value, index) {
+        //     return exp.indexOf(index) === -1;
+        // });
+        // scopes = copyObject(result);
     }
 
     if (scopes.length > 0) {
@@ -1296,7 +1540,6 @@ function selectTile(params, room) {
         gameVars.moveScopes = scopes.join(",").split(",");
     }
     else {
-
     }
 
     ServerCommService.send(
@@ -1320,8 +1563,25 @@ function moveTile(params, room) {
                 checkArr[z] = gameVars.values[z];
             }
 
-            checkArr[n] = checkArr[gameVars.moveTarget];
-            checkArr[gameVars.moveTarget] = 0;
+            if (gameVars.myTurn) {
+                if (gameVars.en1 !== -1 && (gameVars.en1 - 8) === n && gameVars.values[gameVars.moveTarget] === 'o') {
+                    checkArr[n] = checkArr[gameVars.moveTarget];
+                    checkArr[gameVars.moveTarget] = 0;
+                    checkArr[gameVars.en1] = 0;
+                } else {
+                    checkArr[n] = checkArr[gameVars.moveTarget];
+                    checkArr[gameVars.moveTarget] = 0;
+                }
+            } else {
+                if (gameVars.en2 !== -1 && (gameVars.en2 + 8) === n && gameVars.values[gameVars.moveTarget] === 'p') {
+                    checkArr[n] = checkArr[gameVars.moveTarget];
+                    checkArr[gameVars.moveTarget] = 0;
+                    checkArr[gameVars.en2] = 0;
+                } else {
+                    checkArr[n] = checkArr[gameVars.moveTarget];
+                    checkArr[gameVars.moveTarget] = 0;
+                }
+            }
 
             if (gameVars.myTurn) {
                 for (var y = 0; y < 64; y++) {
@@ -1331,6 +1591,14 @@ function moveTile(params, room) {
                             if (checkArr[checkScp[z]] === 'l') {
                                 if (!saveKing) {
                                     // alert('Save Your King');
+                                    ServerCommService.send(
+                                        MESSAGE_TYPE.SC_ALERT,
+                                        {
+                                            kingP: checkScp[z],
+                                            attackP: y,
+                                        },
+                                        [0, 1]
+                                    );
                                     gameVars.winner = 1;
                                     saveKing = true;
                                 }
@@ -1346,6 +1614,14 @@ function moveTile(params, room) {
                             if (checkArr[checkScp[z]] === 'k') {
                                 if (!saveKing) {
                                     // alert('Save Enemy King');
+                                    ServerCommService.send(
+                                        MESSAGE_TYPE.SC_ALERT,
+                                        {
+                                            kingP: checkScp[z],
+                                            attackP: y,
+                                        },
+                                        [0, 1]
+                                    );
                                     gameVars.winner = 0;
                                     saveKing = true;
                                 }
@@ -1360,9 +1636,48 @@ function moveTile(params, room) {
                 gameVars.winner = -1;
 
                 // TimeoutManager.clearNextTimeout();
+                if ('prnbq'.indexOf(gameVars.values[n]) >= 0) {
+                    gameVars.player1_score += 1;
+                    gameVars.p1_50 = 0;
+                } else if ('otmvw'.indexOf(gameVars.values[n]) >= 0) {
+                    gameVars.player2_score += 1;
+                    gameVars.p2_50 = 0;
+                }
 
-                gameVars.values[n] = gameVars.values[gameVars.moveTarget];
-                gameVars.values[gameVars.moveTarget] = 0;
+                // for 50-move rule
+                if (gameVars.myTurn) {
+                    // for 50-move rule
+                    gameVars.p1_50 += 1;
+                    if (gameVars.values[gameVars.moveTarget] === 'o') {
+                        gameVars.p1_50 = 0;
+                    }
+                    if (gameVars.en1 !== -1 && (gameVars.en1 - 8) === n && gameVars.values[gameVars.moveTarget] === 'o') {
+                        gameVars.values[n] = gameVars.values[gameVars.moveTarget];
+                        gameVars.values[gameVars.moveTarget] = 0;
+                        gameVars.values[gameVars.en1] = 0;
+                        gameVars.player1_score += 1;
+                    } else {
+                        gameVars.values[n] = gameVars.values[gameVars.moveTarget];
+                        gameVars.values[gameVars.moveTarget] = 0;
+                    }
+                } else {
+                    // for 50-move rule
+                    gameVars.p2_50 += 1;
+                    if (gameVars.values[gameVars.moveTarget] === 'p') {
+                        gameVars.p2_50 = 0;
+                    }
+                    if (gameVars.en2 !== -1 && (gameVars.en2 + 8) === n && gameVars.values[gameVars.moveTarget] === 'p') {
+                        gameVars.values[n] = gameVars.values[gameVars.moveTarget];
+                        gameVars.values[gameVars.moveTarget] = 0;
+                        gameVars.values[gameVars.en2] = 0;
+                        gameVars.player2_score += 1;
+                    } else {
+                        gameVars.values[n] = gameVars.values[gameVars.moveTarget];
+                        gameVars.values[gameVars.moveTarget] = 0;
+                    }
+                }
+                // gameVars.values[n] = gameVars.values[gameVars.moveTarget];
+                // gameVars.values[gameVars.moveTarget] = 0;
                 if (gameVars.myTurn) {
                     // switch the king and rook
                     if (gameVars.cl) {
@@ -1420,7 +1735,23 @@ function moveTile(params, room) {
                         gameVars.values[n] = "q";
                     }
                 }
+
+                // for en passant move
+                if (gameVars.myTurn) {
+                    if ((gameVars.moveTarget - n) === 16)
+                        gameVars.en2 = n;
+                    else gameVars.en2 = -1;
+                } else {
+                    if ((n - gameVars.moveTarget) === 16)
+                        gameVars.en1 = n;
+                    else gameVars.en1 = -1;
+                }
+
                 gameVars.moveable = false;
+
+                // push to the history
+                gameVars.history.push(copyObject(gameVars.values));
+                console.log(gameVars.history);
 
                 ServerCommService.send(
                     MESSAGE_TYPE.SC_DRAW_BOARD,
@@ -1434,6 +1765,8 @@ function moveTile(params, room) {
                     MESSAGE_TYPE.SC_CONFIRM_MOVE,
                     {
                         currentPlayer: gameVars.myTurn ? 0 : 1,
+                        p1Score: gameVars.player1_score,
+                        p2Score: gameVars.player2_score,
                     },
                     [0, 1]
                 );
@@ -1443,11 +1776,11 @@ function moveTile(params, room) {
                 if (gameVars.checkMate) {
                     TimeoutManager.clearNextTimeout();
                     gameVars.endGame = true;
-                    if (gameVars.winner === 0) {
-                        gameVars.player1_score += 1;
-                    } else if (gameVars.winner === 1) {
-                        gameVars.player2_score += 1;
-                    }
+                    // if (gameVars.winner === 0) {
+                    //     gameVars.player1_score += 1;
+                    // } else if (gameVars.winner === 1) {
+                    //     gameVars.player2_score += 1;
+                    // }
                     ServerCommService.send(
                         MESSAGE_TYPE.SC_END_GAME,
                         {
@@ -1457,7 +1790,7 @@ function moveTile(params, room) {
                             p2Score: gameVars.player2_score,
                         },
                         [0, 1]
-                    );                    
+                    );
                 } else {
                     // check the check
                     var saveKingTemp = false;

@@ -59,6 +59,8 @@ cc.Class({
 
         this._time = cc.director.getTotalTime();
         this._players = [this.player1, this.player2];
+        this.numPlayers = 2;
+        global.myOrder = 0;
 
         lang.translateScene(cc.director.getScene(), ["continue", "accept", "pass"]);
         if (global.soundtrack) {
@@ -85,6 +87,9 @@ cc.Class({
         this._endGame = false;
         this._players[0].avatar.clear(plScore);
         this._players[1].avatar.clear(p2Score);
+
+        this.numPlayers = 2;
+        global.myOrder = 0;
         // Listen for the 'finished' event        
     },
 
@@ -109,17 +114,20 @@ cc.Class({
     },
 
     askPlayer(currentPlayer, remainTime) {
+        let gameBoardOrder = this.getGameBoardOrder(currentPlayer);
         this._currentPlayer = currentPlayer;
-        this.setActivePlayer(currentPlayer, remainTime);
+        this.setActivePlayer(gameBoardOrder, remainTime);
     },
 
     setAvailCells(scopes) {
         this._availablePositions = scopes;
-        this.board.setAvailCells(scopes);
+        // this.board.setAvailCells(scopes);
     },
 
-    confirmMove(gameBoardOrder) {
+    confirmMove(gameBoardOrder, p1Score, p2Score) {
         this._round = ROUNDS.MOVE_UNIT;
+        this._players[0].avatar.setRoundScore(p1Score);
+        this._players[1].avatar.setRoundScore(p2Score);
     },
 
     disableNotifications() {
@@ -142,7 +150,11 @@ cc.Class({
         }, 1);
     },
 
-    endGame(winner, checkMate, p1Score, p2Score) {
+    showAlert(kingP, attackP) {
+        this.board.blinking(kingP, attackP);
+    },
+
+    endGame(winner, checkMate, p1Score, p2Score, time) {
         this._players[0].avatar.setRoundScore(p1Score);
         this._players[1].avatar.setRoundScore(p2Score);
         this.notification.active = true;
@@ -151,7 +163,7 @@ cc.Class({
         if (checkMate) {
             this.checkMateNotification.node.active = true;
             this.checkMateNotification.setText();
-        } else {
+        } else if (time === true) {
             this.timeOverNotification.node.active = true;
             this.timeOverNotification.setText();
         }
@@ -171,6 +183,22 @@ cc.Class({
                 Audio.playEffect("gameDrawer");
             }
         }, 2);
+    },
+
+    getGameBoardOrder(order) {
+        var playerBoardOrder = order - global.myOrder;
+        if (playerBoardOrder != 0) {
+            if (this.numPlayers == 2) {
+                // return 2;
+                return 1;
+            }
+            else {
+                if (playerBoardOrder < 0) {
+                    playerBoardOrder = playerBoardOrder + this.numPlayers;
+                }
+            }
+        }
+        return playerBoardOrder;
     },
 
     loadSkin() {

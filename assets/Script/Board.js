@@ -36,7 +36,7 @@ export default cc.Class({
 
     setAvailCells(scopes) {
         this._tiles.forEach((tile) => {
-            if (scopes.includes(tile._id)) {
+            if (scopes.indexOf(tile._id) >= 0) {
                 tile.mask.active = true;
             } else {
                 tile.mask.active = false;
@@ -56,6 +56,14 @@ export default cc.Class({
                 tile.selected.active = true;
             } else {
                 tile.selected.active = false;
+            }
+        });
+    },
+
+    blinking(kingP, attackP) {
+        this._tiles.forEach((tile) => {
+            if (kingP === tile._id || attackP === tile._id) {
+                tile.blinkNode();
             }
         });
     },

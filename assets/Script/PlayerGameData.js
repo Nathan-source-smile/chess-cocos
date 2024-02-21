@@ -111,7 +111,9 @@ export default cc.Class({
     },
 
     setRoundScore(score) {
-        this.roundScore.string = score + "/" + TOTAL_ROUND;
+        let str = String(score).padStart(2, '0');
+        this.roundScore.string = str;
+        // this.roundScore.string = score + "/" + TOTAL_ROUND;
     },
 
     activate(remainTime) {

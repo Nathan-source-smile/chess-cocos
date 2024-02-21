@@ -23,6 +23,13 @@ var gameVars = {
   cr2e: false, // to check the first move of right rook
   cle: false,
 
+  en1: -1, // en passant for player1
+  en2: -1, // en passant for player2
+
+  // for 50-move rule
+  p1_50: 0,
+  p2_50: 0,
+
   myTurn: true, // player1 is true, player2 is false
   moveable: false,
   moveTarget: "", // selected Tile
@@ -33,10 +40,13 @@ var gameVars = {
   player1_remainTime: TOTAL_TIME,
   player2_remainTime: TOTAL_TIME,
   currentTime: null,
+  check: false,
   checkMate: false,
   endGame: false,
   player1_score: 0,
   player2_score: 0,
+
+  history: [],
 };
 
 module.exports = gameVars;

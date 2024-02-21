@@ -24,13 +24,16 @@ export const ClientCommService = {
                 global.scenes['gameScene'].setAvailCells(params.scopes);
                 break;
             case MESSAGE_TYPE.SC_CONFIRM_MOVE:
-                global.scenes['gameScene'].confirmMove(params.currentPlayer);
+                global.scenes['gameScene'].confirmMove(params.currentPlayer, params.p1Score, params.p2Score);
                 break;
             case MESSAGE_TYPE.SC_CHECK:
                 global.scenes['gameScene'].showCheck();
                 break;
+            case MESSAGE_TYPE.SC_ALERT:
+                global.scenes['gameScene'].showAlert(params.kingP, params.attackP);
+                break;
             case MESSAGE_TYPE.SC_END_GAME:
-                global.scenes['gameScene'].endGame(params.winner, params.checkMate, params.p1Score, params.p2Score);
+                global.scenes['gameScene'].endGame(params.winner, params.checkMate, params.p1Score, params.p2Score, params.time);
                 break;
         }
     },
