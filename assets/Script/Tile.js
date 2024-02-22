@@ -13,8 +13,8 @@ export default cc.Class({
         released: cc.Node,
         blink: cc.Node,
         label: cc.Label,
-        id: -1,
 
+        _id: -1,
         _value: 0,
         _user: -1,
     },
@@ -22,7 +22,8 @@ export default cc.Class({
     onLoad() {
         // Mouse enter event
         this.node.on(cc.Node.EventType.MOUSE_ENTER, function (event) {
-            this.mask.active = true;
+            if (global.scenes['gameScene']._availablePositions.indexOf(this._id) >= 0)
+                this.mask.active = true;
             // Additional actions for hover state can be added here
         }, this);
 

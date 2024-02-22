@@ -183,7 +183,7 @@ cc.Class({
                 // self.drawNotification.setAmount(2000);
                 Audio.playEffect("gameDrawer");
             }
-        }, 2);
+        }, 1);
     },
 
     resign() {
@@ -266,7 +266,6 @@ cc.Class({
         global.SfsDisconnectReason = global.SfsDisconnectReasons.gameFinished;
         global.scenes['roomScene'].closeSfsConnection();
     },
-
 
     hideSurrenderDisplay() {
         this.surrenderDisplayNode.active = false;

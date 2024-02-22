@@ -1182,24 +1182,24 @@ function startGame() {
     gameVars.player1_score = 0;
     gameVars.player2_score = 0;
     // }
-    gameVars.values = [
-        'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
-        'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
-        't', 'm', 'v', 'w', 'l', 'v', 'm', 't'];
     // gameVars.values = [
-    //     'k', 0, 0, 0, 0, 0, 0, 0,
-    //     0, 0, 0, 0, 0, 0, 'w', 0,
+    //     'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
+    //     'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
     //     0, 0, 0, 0, 0, 0, 0, 0,
     //     0, 0, 0, 0, 0, 0, 0, 0,
     //     0, 0, 0, 0, 0, 0, 0, 0,
-    //     0, 0, 'l', 0, 0, 0, 0, 0,
     //     0, 0, 0, 0, 0, 0, 0, 0,
-    //     0, 0, 0, 0, 0, 0, 0, 0,];
+    //     'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
+    //     't', 'm', 'v', 'w', 'l', 'v', 'm', 't'];
+    gameVars.values = [
+        0, 0, 'w', 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 'k', 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 't',
+        0, 'l', 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 'q', 0, 0, 0, 0, 0, 0,];
     gameVars.ck = false;
     gameVars.cr1 = false;
     gameVars.cr2 = false;
@@ -1642,14 +1642,48 @@ function moveTile(params, room) {
 
                 // TimeoutManager.clearNextTimeout();
                 if ('prnbq'.indexOf(gameVars.values[n]) >= 0) {
-                    gameVars.player1_score += 1;
+                    switch (gameVars.values[n]) {
+                        case 'p':
+                            gameVars.player1_score += 1;
+                            break;
+                        case 'b':
+                            gameVars.player1_score += 3;
+                            break;
+                        case 'n':
+                            gameVars.player1_score += 3;
+                            break;
+                        case 'r':
+                            gameVars.player1_score += 5;
+                            break;
+                        case 'q':
+                            gameVars.player1_score += 9;
+                            break;
+
+                    }
                     gameVars.p1_50 = 0;
                 } else if ('otmvw'.indexOf(gameVars.values[n]) >= 0) {
-                    gameVars.player2_score += 1;
+                    switch (gameVars.values[n]) {
+                        case 'o':
+                            gameVars.player2_score += 1;
+                            break;
+                        case 'm':
+                            gameVars.player2_score += 3;
+                            break;
+                        case 'v':
+                            gameVars.player2_score += 3;
+                            break;
+                        case 't':
+                            gameVars.player2_score += 5;
+                            break;
+                        case 'w':
+                            gameVars.player2_score += 9;
+                            break;
+
+                    }
                     gameVars.p2_50 = 0;
                 }
 
-                // for 50-move rule
+                // for 50-move rule and en passant
                 if (gameVars.myTurn) {
                     // for 50-move rule
                     gameVars.p1_50 += 1;
