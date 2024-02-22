@@ -148,7 +148,7 @@ cc.Class({
         this.scheduleOnce(() => {
             this.notification.active = false;
             this.checkNotification.node.active = false;
-        }, 1);
+        }, .9);
     },
 
     showAlert(kingP, attackP) {
@@ -172,13 +172,16 @@ cc.Class({
         this.scheduleOnce(() => {
             this.disableNotifications();
             if (winner === 0) {
+                self.notification.active = true;
                 self.winNotification.node.active = true;
                 // self.winNotification.setAmount(2000);
                 Audio.playEffect("gameWinner");
             } else if (winner === 1) {
+                self.notification.active = true;
                 self.loseNotification.node.active = true;
                 Audio.playEffect("gameLooser");
             } else if (winner === -1) {
+                self.notification.active = true;
                 self.drawNotification.node.active = true;
                 // self.drawNotification.setAmount(2000);
                 Audio.playEffect("gameDrawer");
@@ -187,7 +190,8 @@ cc.Class({
     },
 
     resign() {
-        ClientCommService.sendResign(this._currentPlayer);
+        if (!this._endGame)
+            ClientCommService.sendResign(this._currentPlayer);
     },
 
     getGameBoardOrder(order) {
