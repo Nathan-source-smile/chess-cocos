@@ -216,7 +216,12 @@ cc.Class({
 
     // Game common functions:
     loadBackground() {
-        const spriteSheetPath = global.themeSpriteSheet.replace("%%SKIN%%", global.skin);
+        let spriteSheetPath;
+        if(global.skin !== "" && global.skin !== null && global.skin !== undefined){
+            spriteSheetPath = global.themeSpriteSheet.replace("%%SKIN%%", global.skin);
+        } else {
+            spriteSheetPath = global.themeSpriteSheet.replace("%%SKIN%%", 'default');
+        }
         let self = this;
         cc.loader.loadRes(spriteSheetPath, cc.SpriteAtlas, function (err, atlas) {
             if (err) {

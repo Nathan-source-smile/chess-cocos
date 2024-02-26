@@ -262,7 +262,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "background",
+    "_name": "sceneBackground",
     "_objFlags": 0,
     "_parent": {
       "__id__": 2
@@ -544,7 +544,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Logo",
+    "_name": "topLogo",
     "_objFlags": 0,
     "_parent": {
       "__id__": 7

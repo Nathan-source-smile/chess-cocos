@@ -197,7 +197,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Logo",
+    "_name": "topLogo",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -222,8 +222,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 161,
-      "height": 43
+      "width": 238,
+      "height": 39
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -234,7 +234,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -544.842,
+        -504.253,
         3.72,
         0,
         0,
