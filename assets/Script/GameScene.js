@@ -11,6 +11,7 @@ import CheckNotification from "./CheckNotification.js";
 import DrawNotification from "./DrawNotification.js";
 import TimeOverNotification from "./TimeOverNotification.js";
 import { ClientCommService } from "./ClientCommService.js";
+import { SmartFoxConnector } from "./SmartFoxConnector";
 
 var Audio = require("./Audio.js");
 var lang = require("./lang.js");
@@ -34,6 +35,11 @@ cc.Class({
         checkNotification: CheckNotification,
         checkMateNotification: CheckMateNotification,
         timeOverNotification: TimeOverNotification,
+
+        chatNode: cc.Node,
+        outgoingChatLabel: cc.EditBox,
+        canvasNode: cc.Node,
+        chatButtonNode: cc.Node,
 
         _currentPlayer: -1,
         _players: [],
@@ -72,14 +78,43 @@ cc.Class({
         this.loadLogo();
         loadImgAtlas()
             .then(() => {
-                FakeServer.initHandlers();
-                FakeServer.init();
-                this._players.forEach((player, index) => {
-                    player.avatar.setUsername('player' + (index + 1));
-                });
+                // FakeServer.initHandlers();
+                // FakeServer.init();
+                // this._players.forEach((player, index) => {
+                //     player.avatar.setUsername('player' + (index + 1));
+                // });
+
+                global.useSmartFox = false;
+                if (!global.useSmartFox) {
+                    console.log("Loading fake server");
+                    FakeServer.initHandlers();
+                    FakeServer.init();
+                    this._players.forEach((player, index) => {
+                        player.avatar.setUsername('player' + (index + 1));
+                    });
+                }
+                else {
+                    //this.showGetReadyNoTimeout();
+                    console.log("Cheking sfs");
+                    console.log("Sfs configured:", global.sfs);
+                    if (!global.sfs) {
+                        console.log("Loading sfs server");
+                        SmartFoxConnector.configureAndConnectSmartfox();
+                        this.loadPlayers();
+                        global.scenes['roomScene'] = SmartFoxConnector;
+                    }
+                    this.coinsLabel.string = global.credits;
+                }
             })
             .catch((error) => {
             });
+    },
+
+    start() {
+        if (global.sfs) {
+            var data = new SFS2X.SFSObject();
+            global.sfs.send(new SFS2X.ExtensionRequest("GAME_SCENE_READY", data, global.sfs.lastJoinedRoom));
+        }
     },
 
     start1(plScore, p2Score) {
@@ -217,7 +252,7 @@ cc.Class({
     // Game common functions:
     loadBackground() {
         let spriteSheetPath;
-        if(global.skin !== "" && global.skin !== null && global.skin !== undefined){
+        if (global.skin !== "" && global.skin !== null && global.skin !== undefined) {
             spriteSheetPath = global.themeSpriteSheet.replace("%%SKIN%%", global.skin);
         } else {
             spriteSheetPath = global.themeSpriteSheet.replace("%%SKIN%%", 'default');
@@ -282,6 +317,22 @@ cc.Class({
 
     showSurrenderDisplay() {
         this.surrenderDisplayNode.active = true;
+    },
+
+    sendChat() {
+        if (this.outgoingChatLabel.string != "") {
+            /*if (this.isMobile){
+                this.chatNode.active = false;
+            }*/
+            var data = new SFS2X.SFSObject();
+            data.putUtfString("text", this.outgoingChatLabel.string);
+            global.sfs.send(new SFS2X.ExtensionRequest("CHAT", data, global.sfs.lastJoinedRoom));
+            this.outgoingChatLabel.string = "";
+        }
+    },
+
+    sendSmartfoxMessage(command, data) {
+        global.sfs.send(new SFS2X.ExtensionRequest(command, data, global.sfs.lastJoinedRoom))
     },
 
     // called every frame
